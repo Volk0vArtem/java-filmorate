@@ -3,16 +3,9 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.annotations.ReleaseDate;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
-import java.time.Duration;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
-
-/**
- * Film.
- */
 @Data
 public class Film {
 
@@ -25,6 +18,6 @@ public class Film {
 
     @ReleaseDate
     private LocalDate releaseDate;
-    @PositiveOrZero
-    private Duration duration;
+    @Positive
+    private int duration;
 }
