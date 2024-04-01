@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
 
-    private final InMemoryFilmStorage storage;
+    private final FilmStorage storage;
 
     @Autowired
-    public FilmService(InMemoryFilmStorage storage) {
+    public FilmService(FilmStorage storage) {
         this.storage = storage;
     }
 
@@ -39,4 +39,22 @@ public class FilmService {
                 .limit(10)
                 .collect(Collectors.toList());
     }
+
+    public Film addFilm(Film film) {
+        return storage.addFilm(film);
+    }
+
+    public Film updateFilm(Film film) {
+        return storage.updateFilm(film);
+    }
+
+    public Film getFilm(int id) {
+        return storage.getFilm(id);
+    }
+
+    public List<Film> getFilms() {
+        return storage.getFilms();
+    }
+
+
 }
