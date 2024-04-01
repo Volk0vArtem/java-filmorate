@@ -18,15 +18,18 @@ public class FilmService {
         this.storage = storage;
     }
 
-    public void addLike(int filmId, int userId) {
+    public Film addLike(int filmId, int userId) {
         storage.getFilm(filmId).getLikes().add(userId);
+        return storage.getFilm(filmId);
     }
 
-    public void removeLike(int filmId, int userId) {
+    public Film removeLike(int filmId, int userId) {
         storage.getFilm(filmId).getLikes().remove(userId);
+        return storage.getFilm(filmId);
     }
 
-    public List<Film> getTopFilms() {
+    public List<Film> getTopFilms(Integer count) {
+        if (count == null) count = 10;
         List<Film> list = List.copyOf(storage.getFilms());
         return list.stream()
                 .sorted((film1, film2) -> {
@@ -36,7 +39,7 @@ public class FilmService {
                     }
                     return film1.getName().compareTo(film2.getName());
                 })
-                .limit(10)
+                .limit(count)
                 .collect(Collectors.toList());
     }
 

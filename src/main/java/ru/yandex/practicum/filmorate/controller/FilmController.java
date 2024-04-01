@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-
 import javax.validation.Valid;
 import java.util.List;
 
@@ -35,6 +34,26 @@ public class FilmController {
     @GetMapping
     public List<Film> getFilms() {
         return service.getFilms();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable int id) {
+        return service.getFilm(id);
+    }
+
+    @PutMapping("/films/{id}/like/{userId}")
+    public Film addLike(@PathVariable int id, @PathVariable int userId) {
+        return service.addLike(id, userId);
+    }
+
+    @DeleteMapping("/films/{id}/like/{userId}")
+    public Film removeLike(@PathVariable int id, @PathVariable int userId) {
+        return service.removeLike(id, userId);
+    }
+
+    @GetMapping("/films/popular")
+    public List<Film> getPopular(@RequestParam(required = false) String count) {
+        return service.getTopFilms(Integer.valueOf(count));
     }
 
 }

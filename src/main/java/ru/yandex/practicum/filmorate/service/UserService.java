@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -19,11 +20,12 @@ public class UserService {
         this.storage = storage;
     }
 
-    public void addToFriends(int userId, int friendId) {
+    public User addToFriends(int userId, int friendId) {
         User user = storage.getUser(userId);
         User friend = storage.getUser(friendId);
         user.getFriends().add(friendId);
         friend.getFriends().add(userId);
+        return user;
     }
 
     public void removeFromFriends(int userId, int friendId) {
@@ -33,10 +35,18 @@ public class UserService {
         friend.getFriends().remove(userId);
     }
 
-    public List<Integer> getCommonFriendsList(int user1Id, int user2Id) {
+    public List<User> getFriends(int id) {
+        return storage.getUser(id).getFriends().stream()
+                .map(storage::getUser)
+                .collect(Collectors.toList());
+    }
+
+    public List<User> getCommonFriends(int user1Id, int user2Id) {
         Set<Integer> commonFriends = new HashSet<>(storage.getUser(user1Id).getFriends());
         commonFriends.retainAll(storage.getUser(user2Id).getFriends());
-        return List.copyOf(commonFriends);
+        return commonFriends.stream()
+                .map(storage::getUser)
+                .collect(Collectors.toList());
     }
 
     public List<User> getUsers() {
