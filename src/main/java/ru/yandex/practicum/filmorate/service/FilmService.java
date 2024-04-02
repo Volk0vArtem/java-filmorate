@@ -28,12 +28,13 @@ public class FilmService {
         return storage.getFilm(filmId);
     }
 
-    public List<Film> getTopFilms(Integer count) {
-        if (count == null) count = 10;
+    public List<Film> getTopFilms(String c) {
+        int count = 10;
+        if (c != null) count = Integer.parseInt(c);
         List<Film> list = List.copyOf(storage.getFilms());
         return list.stream()
                 .sorted((film1, film2) -> {
-                    int likesDiff = film1.getLikes().size() - film2.getLikes().size();
+                    int likesDiff = film2.getLikes().size() - film1.getLikes().size();
                     if (likesDiff != 0) {
                         return likesDiff;
                     }

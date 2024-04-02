@@ -44,6 +44,7 @@ public class UserService {
     public List<User> getCommonFriends(int user1Id, int user2Id) {
         Set<Integer> commonFriends = new HashSet<>(storage.getUser(user1Id).getFriends());
         commonFriends.retainAll(storage.getUser(user2Id).getFriends());
+        System.out.println(commonFriends);
         return commonFriends.stream()
                 .map(storage::getUser)
                 .collect(Collectors.toList());
