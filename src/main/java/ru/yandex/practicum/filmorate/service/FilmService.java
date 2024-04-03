@@ -2,8 +2,10 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,6 +15,7 @@ import java.util.stream.Collectors;
 public class FilmService {
 
     private final FilmStorage storage;
+    private final UserStorage userStorage;
 
     public Film addLike(int filmId, int userId) {
         storage.getFilm(filmId).getLikes().add(userId);
@@ -20,6 +23,7 @@ public class FilmService {
     }
 
     public Film removeLike(int filmId, int userId) {
+        if (userStorage.getUser(userId) == null) throw new NotFoundException("Пользователь не найден");
         storage.getFilm(filmId).getLikes().remove(userId);
         return storage.getFilm(filmId);
     }

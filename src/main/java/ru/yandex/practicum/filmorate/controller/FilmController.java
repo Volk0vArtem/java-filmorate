@@ -48,7 +48,6 @@ public class FilmController {
 
     @DeleteMapping("/{id}/like/{userId}")
     public Film removeLike(@PathVariable int id, @PathVariable int userId) {
-        if (userService.getUser(userId) == null) throw new NotFoundException("Пользователь не найден");
         return service.removeLike(id, userId);
     }
 
