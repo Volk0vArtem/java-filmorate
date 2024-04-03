@@ -18,6 +18,7 @@ public class FilmService {
     private final UserStorage userStorage;
 
     public Film addLike(int filmId, int userId) {
+        if (userStorage.getUser(userId) == null) throw new NotFoundException("Пользователь не найден");
         storage.getFilm(filmId).getLikes().add(userId);
         return storage.getFilm(filmId);
     }
