@@ -13,13 +13,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-
     private final UserStorage storage;
 
     public User addToFriends(int userId, int friendId) {
         User user = storage.getUser(userId);
         User friend = storage.getUser(friendId);
-        user.getFriends().add(friendId);
+        //user.getFriends().add(friendId);
         friend.getFriends().add(userId);
         return user;
     }
@@ -60,6 +59,11 @@ public class UserService {
 
     public User updateUser(User user) {
         return storage.updateUser(user);
+    }
+
+    //todo  endpoint
+    public Boolean confirmFriendship(int id, int friendId) {
+        return storage.getUser(id).getFriends().contains(friendId) && storage.getUser(friendId).getFriends().contains(id);
     }
 
 }
