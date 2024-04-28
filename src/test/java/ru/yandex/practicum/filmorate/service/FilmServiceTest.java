@@ -24,7 +24,7 @@ class FilmServiceTest {
     @BeforeEach
     public void beforeEach() {
         InMemoryUserStorage userStorage = new InMemoryUserStorage();
-        service = new FilmService(new InMemoryFilmStorage(), userStorage);
+        service = new FilmService(new InMemoryFilmStorage());
 
         user1 = new User();
         user2 = new User();

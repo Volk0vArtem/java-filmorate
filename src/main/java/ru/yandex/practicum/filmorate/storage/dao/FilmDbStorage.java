@@ -3,14 +3,15 @@ package ru.yandex.practicum.filmorate.storage.dao;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -30,13 +31,11 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-
         Rating rating = jdbcTemplate.queryForObject("select * from rating where id = ?",
                 (rs, rowNum) -> new Rating(rs.getInt("id"), rs.getString("name")), film.getMpa().getId());
         film.setMpa(rating);
 
         Map<String, Object> values = new HashMap<>();
-        values.put("id", film.getId());
         values.put("name", film.getName());
         values.put("description", film.getDescription());
         values.put("release_date", film.getReleaseDate());
@@ -57,9 +56,6 @@ public class FilmDbStorage implements FilmStorage {
             genres.put("genre_id", genre.getId());
             simpleJdbcInsertGenres.execute(genres);
         }
-
-
-
         List<Genre> genreList = jdbcTemplate.query("select fg.genre_id, g.name from film_genre fg join genre g on fg.genre_id=g.id where film_id = ?",
                 (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")), film.getId());
 
@@ -72,7 +68,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-
+        getFilm(film.getId());
         Rating rating = jdbcTemplate.queryForObject("select * from rating where id = ?",
                 (rs, rowNum) -> new Rating(rs.getInt("id"), rs.getString("name")), film.getMpa().getId());
         film.setMpa(rating);
@@ -115,16 +111,20 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilm(int id) {
-        String sql = "select f.id, f.name,  f.description, f.release_date , f.duration, g.name as genre, r.name as rating, " +
-                "l.user_id as user_likes, r.id as rating_id, g.id as genre_id from films f left join rating r on f.rating=r.id " +
-                "left join film_genre fg on f.id=fg.film_id left join genre g on fg.genre_id=g.id left join likes l on f.id=l.film_id where f.id=?";
-        return jdbcTemplate.queryForObject(sql, filmRowMapper(), id);
+        try {
+            String sql = "select f.id, f.name,  f.description, f.release_date , f.duration, g.name as genre, r.name as rating, " +
+                    "l.user_id as user_likes, r.id as rating_id, g.id as genre_id from films f left join rating r on f.rating=r.id " +
+                    "left join film_genre fg on f.id=fg.film_id left join genre g on fg.genre_id=g.id left join likes l on f.id=l.film_id where f.id=?";
+            return jdbcTemplate.queryForObject(sql, filmRowMapper(), id);
+        }  catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException("Фильм с id=" + id + " не найден");
+        }
     }
 
     @Override
     public Film addLike(int filmId, int userId) {
-        Film film = getFilm(filmId);
-        User user = userStorage.getUser(userId);
+        if (getFilm(filmId).getLikes().contains(userId)) throw new IllegalArgumentException("Пользователь уже поставил лайк");
+        userStorage.getUser(userId);
 
         Map<String, Object> values = new HashMap<>();
         values.put("user_id", userId);
@@ -139,6 +139,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film removeLike(int filmId, int userId) {
+        if (!getFilm(filmId).getLikes().contains(userId)) throw new IllegalArgumentException("Пользователь не ставил лайк на фильм");
         jdbcTemplate.update("delete from likes where user_id = ? and film_id = ?", userId, filmId);
         return getFilm(filmId);
     }

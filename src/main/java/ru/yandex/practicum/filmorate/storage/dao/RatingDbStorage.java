@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.storage.dao;
 
 import lombok.Data;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.RatingStorage;
 
@@ -20,7 +22,11 @@ public class RatingDbStorage implements RatingStorage {
 
     @Override
     public Rating getRating(int id) {
-        return jdbcTemplate.queryForObject("select * from rating where id=?", ratingRowMapper(),id);
+        try {
+            return jdbcTemplate.queryForObject("select * from rating where id=?", ratingRowMapper(),id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException("Рейтинг с id=" + id + " не найден");
+        }
     }
 
     private RowMapper<Rating> ratingRowMapper(){
