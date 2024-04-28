@@ -12,9 +12,8 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Data
@@ -71,6 +70,39 @@ public class UserDbStorage implements UserStorage {
     public User getUser(int id) {
         return jdbcTemplate.queryForObject("select * from users u left join friends f on u.id=f.user_id where u.id = ?",
                 userRowMapper(), id);
+    }
+
+    @Override
+    public User addToFriends(int id, int friendId) {
+        Map<String, Object> values = new HashMap<>();
+        values.put("user_id", id);
+        values.put("friend_id", friendId);
+
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("friends");
+
+        simpleJdbcInsert.execute(values);
+        return getUser(id);
+    }
+
+    @Override
+    public void removeFromFriends(int id, int friendId) {
+        jdbcTemplate.update("delete from friends where user_id = ? and friend_id = ?", id, friendId);
+    }
+
+    @Override
+    public List<User> getFriends(int id) {
+        return jdbcTemplate.query("select friend_id from friends where user_id=?",
+                (rs, rowNum) -> getUser(rs.getInt("friend_id")), id);
+    }
+
+    @Override
+    public List<User> getCommonFriends(int userId, int friendId) {
+        List<User> userFriends = getFriends(userId);
+        List<User> friendFriends = getFriends(friendId);
+        return userFriends.stream()
+                .filter(friendFriends::contains)
+                .collect(Collectors.toList());
     }
 
 
