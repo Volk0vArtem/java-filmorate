@@ -12,4 +12,10 @@ public interface FilmStorage {
     List<Film> getFilms();
 
     Film getFilm(int id);
+
+    Film addLike(int filmId, int userId);
+
+    Film removeLike(int filmId, int userId);
+
+    List<Film> getTopFilms(String c);
 }

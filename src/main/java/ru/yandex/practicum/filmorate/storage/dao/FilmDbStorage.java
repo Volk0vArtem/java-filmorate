@@ -10,11 +10,14 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Data
@@ -23,6 +26,7 @@ import java.util.*;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final UserStorage userStorage;
 
     @Override
     public Film addFilm(Film film) {
@@ -111,10 +115,46 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilm(int id) {
-        String sql = "select f.id, f.name,  f.description, f.\"release_date\" , f.duration, g.name as genre, r.name as rating, " +
-                "l.user_id as user_likes, r.id as rating_id, g.id as genre_id from films f join rating r on f.rating=r.id " +
-                "join film_genre fg on f.id=fg.film_id join genre g on fg.genre_id=g.id join likes l on f.id=l.film_id where f.id=?";
+        String sql = "select f.id, f.name,  f.description, f.release_date , f.duration, g.name as genre, r.name as rating, " +
+                "l.user_id as user_likes, r.id as rating_id, g.id as genre_id from films f left join rating r on f.rating=r.id " +
+                "left join film_genre fg on f.id=fg.film_id left join genre g on fg.genre_id=g.id left join likes l on f.id=l.film_id where f.id=?";
         return jdbcTemplate.queryForObject(sql, filmRowMapper(), id);
+    }
+
+    @Override
+    public Film addLike(int filmId, int userId) {
+        Film film = getFilm(filmId);
+        User user = userStorage.getUser(userId);
+
+        Map<String, Object> values = new HashMap<>();
+        values.put("user_id", userId);
+        values.put("film_id", filmId);
+
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("likes");
+        simpleJdbcInsert.execute(values);
+
+        return getFilm(filmId);
+    }
+
+    @Override
+    public Film removeLike(int filmId, int userId) {
+        jdbcTemplate.update("delete from likes where user_id = ? and film_id = ?", userId, filmId);
+        return getFilm(filmId);
+    }
+
+    @Override
+    public List<Film> getTopFilms(String c) {
+        int count = 10;
+        if (c != null) count = Integer.parseInt(c);
+        List<Integer> filmsList = jdbcTemplate.query("select likes_count, f.id, f.name, f.description, f.release_date, f.duration, f.rating\n" +
+                        "FROM films f JOIN (SELECT film_id, COUNT(film_id) AS likes_count FROM likes GROUP BY film_id)" +
+                        "AS top_liked_films ON f.id = top_liked_films.film_id ORDER BY likes_count desc LIMIT ?;",
+                (rs, rowNum) -> rs.getInt("id"), count);
+
+        return filmsList.stream()
+                .map(this::getFilm)
+                .collect(Collectors.toList());
     }
 
     private RowMapper<Film> filmRowMapper() {
