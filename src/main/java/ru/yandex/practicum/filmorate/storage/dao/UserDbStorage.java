@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.dao;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -7,10 +7,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -19,6 +20,7 @@ import java.util.List;
 @Slf4j
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
+
     @Override
     public User addUser(User user) {
         jdbcTemplate.update("insert into users(email, login, name, birthday) values (?,?,?,?)",
@@ -42,21 +44,26 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getUsers() {
-        List<User> users = jdbcTemplate.query("select * from users u order by id",
+        List<User> usersList = jdbcTemplate.query("select * from users u order by id",
                 usersRowMapper());
-        List<List<Integer>> friends = jdbcTemplate.query("select * from friends",
-                friendsRowMapper());
-        for (List<Integer> pair : friends) {
-            users.get(pair.get(0)-1).getFriends().add(pair.get(1));
+        HashMap<Integer, User> usersMap = new HashMap<>();
+        for (User u : usersList){
+            usersMap.put(u.getId(), u);
         }
-        return users;
+        List<Integer[]> friends = jdbcTemplate.query("select * from friends",
+                friendsRowMapper());
+        for (Integer[] pair : friends) {
+            usersMap.get(pair[0]).getFriends().add(pair[1]);
+        }
+        return usersList;
     }
 
     @Override
     public User getUser(int id) {
-        return jdbcTemplate.queryForObject("select * from users u join friends f on u.id=f.user_id where u.id = ?",
+        return jdbcTemplate.queryForObject("select * from users u left join friends f on u.id=f.user_id where u.id = ?",
                 userRowMapper(), id);
     }
+
 
     private RowMapper<User> userRowMapper() {
         return (rs, rowNum) -> {
@@ -68,7 +75,10 @@ public class UserDbStorage implements UserStorage {
             user1.setBirthday(LocalDate.from(formatter.parse(rs.getString("birthday"))));
             user1.setName(rs.getString("name"));
             do {
-                user1.getFriends().add(rs.getInt("friend_id"));
+                int friend = rs.getInt("friend_id");
+                if (friend != 0){
+                    user1.getFriends().add(friend);
+                }
             } while (rs.next());
             return user1;
         };
@@ -87,11 +97,11 @@ public class UserDbStorage implements UserStorage {
         };
     }
 
-    private RowMapper<List<Integer>> friendsRowMapper () {
+    private RowMapper<Integer[]> friendsRowMapper() {
         return (rs, rowNum) -> {
-            List<Integer> pair = new ArrayList<>();
-            pair.add(rs.getInt("user_id"));
-            pair.add(rs.getInt("friend_id"));
+            Integer[] pair = new Integer[2];
+            pair[0] = (rs.getInt("user_id"));
+            pair[1] = (rs.getInt("friend_id"));
             return pair;
         };
     }

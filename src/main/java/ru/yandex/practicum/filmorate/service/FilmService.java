@@ -60,6 +60,4 @@ public class FilmService {
     public List<Film> getFilms() {
         return storage.getFilms();
     }
-
-
 }

@@ -7,6 +7,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,17 +15,19 @@ import java.util.Set;
 public class Film {
 
     private int id;
-    @NotBlank
+    @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
 
     @Size(max = 200)
+    @NotBlank(message = "Описание фильма не может быть пустым")
     private String description;
 
     @ReleaseDate
     private LocalDate releaseDate;
     @Positive
     private int duration;
-    private String genre;
-    private String mpa;
+    private ArrayList<Genre> genre = new ArrayList<>();
+    private Rating mpa;
     private final Set<Integer> likes = new HashSet<>();
+
 }

@@ -61,7 +61,7 @@ public class UserService {
         return storage.updateUser(user);
     }
 
-    //todo  endpoint
+    //????
     public Boolean confirmFriendship(int id, int friendId) {
         return storage.getUser(id).getFriends().contains(friendId) && storage.getUser(friendId).getFriends().contains(id);
     }
