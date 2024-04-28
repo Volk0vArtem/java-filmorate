@@ -12,4 +12,8 @@ public class Genre {
     private Integer id;
     @NotNull
     private String name;
+
+    public Genre(Integer id) {
+        this.id = id;
+    }
 }

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -13,8 +14,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @Component
 @Data
@@ -26,31 +26,67 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        jdbcTemplate.update("INSERT INTO public.films (\"name\", description, \"releaseDate\", duration, rating)" +
-                        "VALUES(?, ?, ?, ?, ?, ?);",
-                film.getName(),
-                film.getDescription(),
-                film.getReleaseDate(),
-                film.getDuration(),
-                film.getMpa().getId());
+
+        Rating rating = jdbcTemplate.queryForObject("select * from rating where id = ?",
+                (rs, rowNum) -> new Rating(rs.getInt("id"), rs.getString("name")), film.getMpa().getId());
+        film.setMpa(rating);
+
+        Map<String, Object> values = new HashMap<>();
+        values.put("id", film.getId());
+        values.put("name", film.getName());
+        values.put("description", film.getDescription());
+        values.put("release_date", film.getReleaseDate());
+        values.put("duration", film.getDuration());
+        values.put("rating", film.getMpa().getId());
+
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("films")
+                .usingGeneratedKeyColumns("id");
+
+        film.setId(simpleJdbcInsert.executeAndReturnKey(values).intValue());
+
+        SimpleJdbcInsert simpleJdbcInsertGenres = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("film_genre");
+        Map<String, Object> genres = new HashMap<>();
+        for (Genre genre : film.getGenres()){
+            genres.put("film_id", film.getId());
+            genres.put("genre_id", genre.getId());
+            simpleJdbcInsertGenres.execute(genres);
+        }
+
+
+
+        List<Genre> genreList = jdbcTemplate.query("select fg.genre_id, g.name from film_genre fg join genre g on fg.genre_id=g.id where film_id = ?",
+                (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")), film.getId());
+
+        film.setGenres(new ArrayList<>(genreList));
+
+        film.setMpa(rating);
+
         return film;
     }
 
     @Override
     public Film updateFilm(Film film) {
-        jdbcTemplate.update("INSERT INTO public.films (\"name\", description, \"releaseDate\", duration, rating)" +
-                        "VALUES(?, ?, ?, ?, ?, ?);",
+
+        Rating rating = jdbcTemplate.queryForObject("select * from rating where id = ?",
+                (rs, rowNum) -> new Rating(rs.getInt("id"), rs.getString("name")), film.getMpa().getId());
+        film.setMpa(rating);
+        film.setMpa(rating);
+
+        jdbcTemplate.update("update films set name=?, description=?, release_date=?, duration=?, rating=? where id=?",
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
-                film.getMpa().getId());
+                film.getMpa().getId(),
+                film.getId());
         return film;
     }
 
     @Override
     public List<Film> getFilms() {
-        List<Film> filmsList = jdbcTemplate.query("select f.id, f.name, f.description, f.\"releaseDate\" , f.duration, " +
+        List<Film> filmsList = jdbcTemplate.query("select f.id, f.name, f.description, f.\"release_date\" , f.duration, " +
                         "r.name as rating_name, f.rating as rating_id from films f join rating r on f.rating=r.id order by f.id",
                 filmsRowMapper());
         HashMap<Integer, Film> filmsMap = new HashMap<>();
@@ -67,7 +103,7 @@ public class FilmDbStorage implements FilmStorage {
 
         for (HashMap<Integer, Genre> genre : genres) {
             for (Integer key : genre.keySet()) {
-                filmsMap.get(key).getGenre().add(genre.get(key));
+                filmsMap.get(key).getGenres().add(genre.get(key));
             }
         }
         return filmsList;
@@ -75,7 +111,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilm(int id) {
-        String sql = "select f.id, f.name,  f.description, f.\"releaseDate\" , f.duration, g.name as genre, r.name as rating, " +
+        String sql = "select f.id, f.name,  f.description, f.\"release_date\" , f.duration, g.name as genre, r.name as rating, " +
                 "l.user_id as user_likes, r.id as rating_id, g.id as genre_id from films f join rating r on f.rating=r.id " +
                 "join film_genre fg on f.id=fg.film_id join genre g on fg.genre_id=g.id join likes l on f.id=l.film_id where f.id=?";
         return jdbcTemplate.queryForObject(sql, filmRowMapper(), id);
@@ -88,14 +124,14 @@ public class FilmDbStorage implements FilmStorage {
             film.setName(rs.getString("name"));
             film.setDescription(rs.getString("description"));
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            film.setReleaseDate(LocalDate.from(formatter.parse(rs.getString("releaseDate"))));
+            film.setReleaseDate(LocalDate.from(formatter.parse(rs.getString("release_date"))));
             film.setDuration(rs.getInt("duration"));
             film.setMpa(new Rating(rs.getInt("rating_id"),rs.getString("rating")));
             do {
                 Genre genre = new Genre(rs.getInt("genre_id"), rs.getString("genre"));
                 int like = rs.getInt("user_likes");
-                if (!film.getGenre().contains(genre)) {
-                    film.getGenre().add(genre);
+                if (!film.getGenres().contains(genre)) {
+                    film.getGenres().add(genre);
                 }
                 if (like != 0) {
                     film.getLikes().add(like);
@@ -113,7 +149,7 @@ public class FilmDbStorage implements FilmStorage {
             film.setName(rs.getString("name"));
             film.setDescription(rs.getString("description"));
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            film.setReleaseDate(LocalDate.from(formatter.parse(rs.getString("releaseDate"))));
+            film.setReleaseDate(LocalDate.from(formatter.parse(rs.getString("release_date"))));
             film.setDuration(rs.getInt("duration"));
             film.setMpa(new Rating(rs.getInt("rating_id"),rs.getString("rating_name")));
             return film;

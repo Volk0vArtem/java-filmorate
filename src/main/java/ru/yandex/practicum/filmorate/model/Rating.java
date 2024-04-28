@@ -12,4 +12,8 @@ public class Rating {
     private Integer id;
     @NotNull
     private String name;
+
+    public Rating(Integer id) {
+        this.id = id;
+    }
 }

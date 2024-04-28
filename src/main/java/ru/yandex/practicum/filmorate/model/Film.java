@@ -26,7 +26,7 @@ public class Film {
     private LocalDate releaseDate;
     @Positive
     private int duration;
-    private ArrayList<Genre> genre = new ArrayList<>();
+    private ArrayList<Genre> genres = new ArrayList<>();
     private Rating mpa;
     private final Set<Integer> likes = new HashSet<>();
 
