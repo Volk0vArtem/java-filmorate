@@ -31,9 +31,25 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        Rating rating = jdbcTemplate.queryForObject("select * from rating where id = ?",
-                (rs, rowNum) -> new Rating(rs.getInt("id"), rs.getString("name")), film.getMpa().getId());
-        film.setMpa(rating);
+        Rating rating;
+        try {
+            rating = jdbcTemplate.queryForObject("select * from rating where id = ?",
+                    (rs, rowNum) -> new Rating(rs.getInt("id"), rs.getString("name")), film.getMpa().getId());
+            film.setMpa(rating);
+        } catch (EmptyResultDataAccessException e) {
+            throw new IllegalArgumentException("MPA не найден");
+        }
+        film.setGenres((ArrayList<Genre>) film.getGenres().stream().distinct().collect(Collectors.toList()));
+        ArrayList<Genre> genreList = new ArrayList<>();
+        for (Genre genre : film.getGenres()) {
+            try {
+                genreList.add(jdbcTemplate.queryForObject("select id, name from genre where id = ?",
+                        (rs, rowNum) -> new Genre(rs.getInt("id"), rs.getString("name")), genre.getId()));
+            } catch (EmptyResultDataAccessException e) {
+                throw new IllegalArgumentException("Жанр не найден");
+            }
+        }
+        film.setGenres(genreList);
 
         Map<String, Object> values = new HashMap<>();
         values.put("name", film.getName());
@@ -56,12 +72,6 @@ public class FilmDbStorage implements FilmStorage {
             genres.put("genre_id", genre.getId());
             simpleJdbcInsertGenres.execute(genres);
         }
-        List<Genre> genreList = jdbcTemplate.query("select fg.genre_id, g.name from film_genre fg join genre g on fg.genre_id=g.id where film_id = ?",
-                (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")), film.getId());
-
-        film.setGenres(new ArrayList<>(genreList));
-
-        film.setMpa(rating);
 
         return film;
     }
@@ -86,7 +96,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getFilms() {
-        List<Film> filmsList = jdbcTemplate.query("select f.id, f.name, f.description, f.\"release_date\" , f.duration, " +
+        List<Film> filmsList = jdbcTemplate.query("select f.id, f.name, f.description, f.release_date , f.duration, " +
                         "r.name as rating_name, f.rating as rating_id from films f join rating r on f.rating=r.id order by f.id",
                 filmsRowMapper());
         HashMap<Integer, Film> filmsMap = new HashMap<>();
@@ -115,7 +125,11 @@ public class FilmDbStorage implements FilmStorage {
             String sql = "select f.id, f.name,  f.description, f.release_date , f.duration, g.name as genre, r.name as rating, " +
                     "l.user_id as user_likes, r.id as rating_id, g.id as genre_id from films f left join rating r on f.rating=r.id " +
                     "left join film_genre fg on f.id=fg.film_id left join genre g on fg.genre_id=g.id left join likes l on f.id=l.film_id where f.id=?";
-            return jdbcTemplate.queryForObject(sql, filmRowMapper(), id);
+            Film film = jdbcTemplate.queryForObject(sql, filmRowMapper(), id);
+            if (film.getGenres().get(0).getId() == 0) {
+                film.setGenres(new ArrayList<>());
+            }
+            return film;
         }  catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Фильм с id=" + id + " не найден");
         }
