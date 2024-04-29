@@ -16,6 +16,7 @@ import java.util.List;
 public class GenreDbStorage implements GenreStorage {
 
     private final JdbcTemplate jdbcTemplate;
+
     @Override
     public List<Genre> getGenres() {
         return jdbcTemplate.query("select * from genre order by id", genreRowMapper());
@@ -25,13 +26,13 @@ public class GenreDbStorage implements GenreStorage {
     public Genre getGenre(int id) {
         try {
             return jdbcTemplate.queryForObject("select * from genre where id=?", genreRowMapper(), id);
-        }  catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Жанр с id=" + id + " не найден");
         }
     }
 
 
-    private RowMapper<Genre> genreRowMapper(){
+    private RowMapper<Genre> genreRowMapper() {
         return (rs, rowNum) -> new Genre(rs.getInt("id"), rs.getString("name"));
     }
 }

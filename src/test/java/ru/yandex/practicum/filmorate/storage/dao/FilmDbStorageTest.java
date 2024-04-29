@@ -22,6 +22,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 class FilmDbStorageTest {
 
     private final JdbcTemplate jdbcTemplate;
+
     @Test
     void addAndGetFilm() {
         clearDb();
@@ -73,7 +74,7 @@ class FilmDbStorageTest {
         assertThat(storage.getFilms())
                 .isNotNull()
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(film1,film2));
+                .isEqualTo(List.of(film1, film2));
     }
 
     @Test
@@ -88,14 +89,14 @@ class FilmDbStorageTest {
         User user = createUser();
         user = userDbStorage.addUser(user);
 
-        storage.addLike(1,1);
+        storage.addLike(1, 1);
 
         assertThat(storage.getFilm(1).getLikes())
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(Set.of(1));
 
-        storage.removeLike(1,1);
+        storage.removeLike(1, 1);
         assertThat(storage.getFilm(1).getLikes())
                 .isNotNull()
                 .usingRecursiveComparison()
@@ -136,20 +137,20 @@ class FilmDbStorageTest {
         storage.addFilm(film3);
         storage.addFilm(film4);
 
-        film1 = storage.addLike(1,1);
+        film1 = storage.addLike(1, 1);
 
-        storage.addLike(2,1);
-        film2 = storage.addLike(2,2);
+        storage.addLike(2, 1);
+        film2 = storage.addLike(2, 2);
 
-        storage.addLike(3,1);
-        storage.addLike(3,2);
-        storage.addLike(3,3);
-        storage.addLike(3,4);
-        film3 = storage.addLike(3,5);
+        storage.addLike(3, 1);
+        storage.addLike(3, 2);
+        storage.addLike(3, 3);
+        storage.addLike(3, 4);
+        film3 = storage.addLike(3, 5);
 
-        storage.addLike(4,1);
-        storage.addLike(4,2);
-        film4 = storage.addLike(4,3);
+        storage.addLike(4, 1);
+        storage.addLike(4, 2);
+        film4 = storage.addLike(4, 3);
 
 
         assertThat(storage.getTopFilms(null))
@@ -163,7 +164,7 @@ class FilmDbStorageTest {
                 .isEqualTo(List.of(film3, film4));
     }
 
-    private Film createFilm(){
+    private Film createFilm() {
         Film film = new Film();
         film.setName("name");
         film.setDescription("description");
@@ -171,20 +172,20 @@ class FilmDbStorageTest {
         film.setMpa(new Rating(1));
         film.getGenres().add(new Genre(3));
         film.getGenres().add(new Genre(5));
-        film.setReleaseDate(LocalDate.of(1955,10,10));
+        film.setReleaseDate(LocalDate.of(1955, 10, 10));
         return film;
     }
 
-    private User createUser(){
+    private User createUser() {
         User user1 = new User();
         user1.setName("name");
         user1.setLogin("login");
         user1.setEmail("email");
-        user1.setBirthday(LocalDate.of(2000,1,1));
+        user1.setBirthday(LocalDate.of(2000, 1, 1));
         return user1;
     }
 
-    private void clearDb(){
+    private void clearDb() {
         jdbcTemplate.update("DELETE FROM films;");
         jdbcTemplate.update("ALTER TABLE films ALTER COLUMN id RESTART WITH 1;");
         jdbcTemplate.update("DELETE FROM users;");

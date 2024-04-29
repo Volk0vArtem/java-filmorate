@@ -25,11 +25,11 @@ class RatingDbStorageTest {
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(List.of(
-                        new Rating(1,"G"),
-                        new Rating(2,"PG"),
-                        new Rating(3,"PG-13"),
-                        new Rating(4,"R"),
-                        new Rating(5,"NC-17")));
+                        new Rating(1, "G"),
+                        new Rating(2, "PG"),
+                        new Rating(3, "PG-13"),
+                        new Rating(4, "R"),
+                        new Rating(5, "NC-17")));
     }
 
     @Test
@@ -38,7 +38,7 @@ class RatingDbStorageTest {
         assertThat(storage.getRating(3))
                 .isNotNull()
                 .usingRecursiveComparison()
-                .isEqualTo(new Rating(3,"PG-13"));
+                .isEqualTo(new Rating(3, "PG-13"));
 
     }
 }

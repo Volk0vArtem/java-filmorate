@@ -85,7 +85,8 @@ public class UserDbStorage implements UserStorage {
     public User addToFriends(int id, int friendId) {
         getUser(id);
         getUser(friendId);
-        if (getUser(id).getFriends().contains(friendId)) throw new IllegalArgumentException("Пользователь уже в друзьях");
+        if (getUser(id).getFriends().contains(friendId))
+            throw new IllegalArgumentException("Пользователь уже в друзьях");
 
         Map<String, Object> values = new HashMap<>();
         values.put("user_id", id);
@@ -116,11 +117,11 @@ public class UserDbStorage implements UserStorage {
     public List<User> getCommonFriends(int userId, int friendId) {
         getUser(userId);
         getUser(friendId);
-            List<User> userFriends = getFriends(userId);
-            List<User> friendFriends = getFriends(friendId);
-            return userFriends.stream()
-                    .filter(friendFriends::contains)
-                    .collect(Collectors.toList());
+        List<User> userFriends = getFriends(userId);
+        List<User> friendFriends = getFriends(friendId);
+        return userFriends.stream()
+                .filter(friendFriends::contains)
+                .collect(Collectors.toList());
     }
 
 

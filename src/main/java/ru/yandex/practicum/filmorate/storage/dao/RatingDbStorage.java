@@ -10,11 +10,13 @@ import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.RatingStorage;
 
 import java.util.List;
+
 @Component
 @Data
 public class RatingDbStorage implements RatingStorage {
 
     private final JdbcTemplate jdbcTemplate;
+
     @Override
     public List<Rating> getRatings() {
         return jdbcTemplate.query("select * from rating order by id", ratingRowMapper());
@@ -23,13 +25,13 @@ public class RatingDbStorage implements RatingStorage {
     @Override
     public Rating getRating(int id) {
         try {
-            return jdbcTemplate.queryForObject("select * from rating where id=?", ratingRowMapper(),id);
+            return jdbcTemplate.queryForObject("select * from rating where id=?", ratingRowMapper(), id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Рейтинг с id=" + id + " не найден");
         }
     }
 
-    private RowMapper<Rating> ratingRowMapper(){
+    private RowMapper<Rating> ratingRowMapper() {
         return (rs, rowNum) -> new Rating(rs.getInt("id"), rs.getString("name"));
     }
 }

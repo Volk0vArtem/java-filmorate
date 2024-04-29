@@ -15,6 +15,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class GenreDbStorageTest {
     private final JdbcTemplate jdbcTemplate;
+
     @Test
     void getGenres() {
         GenreDbStorage storage = new GenreDbStorage(jdbcTemplate);
@@ -23,12 +24,12 @@ class GenreDbStorageTest {
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(List.of(
-                        new Genre(1,"Комедия"),
-                        new Genre(2,"Драма"),
-                        new Genre(3,"Мультфильм"),
-                        new Genre(4,"Триллер"),
-                        new Genre(5,"Документальный"),
-                        new Genre(6,"Боевик")));
+                        new Genre(1, "Комедия"),
+                        new Genre(2, "Драма"),
+                        new Genre(3, "Мультфильм"),
+                        new Genre(4, "Триллер"),
+                        new Genre(5, "Документальный"),
+                        new Genre(6, "Боевик")));
     }
 
     @Test
@@ -38,7 +39,7 @@ class GenreDbStorageTest {
         assertThat(storage.getGenre(4))
                 .isNotNull()
                 .usingRecursiveComparison()
-                .isEqualTo(new Genre(4,"Триллер"));
+                .isEqualTo(new Genre(4, "Триллер"));
 
     }
 

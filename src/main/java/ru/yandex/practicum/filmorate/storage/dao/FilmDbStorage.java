@@ -17,7 +17,10 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -67,7 +70,7 @@ public class FilmDbStorage implements FilmStorage {
         SimpleJdbcInsert simpleJdbcInsertGenres = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("film_genre");
         Map<String, Object> genres = new HashMap<>();
-        for (Genre genre : film.getGenres()){
+        for (Genre genre : film.getGenres()) {
             genres.put("film_id", film.getId());
             genres.put("genre_id", genre.getId());
             simpleJdbcInsertGenres.execute(genres);
@@ -105,7 +108,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         List<Integer[]> likes = jdbcTemplate.query("select * from likes", likesRowMapper());
         List<HashMap<Integer, Genre>> genres = jdbcTemplate.query("select fg.film_id, fg.genre_id, g.name as genre_name " +
-                        "from film_genre fg join genre g on fg.genre_id=g.id", userGenreRowMapper());
+                "from film_genre fg join genre g on fg.genre_id=g.id", userGenreRowMapper());
 
         for (Integer[] like : likes) {
             filmsMap.get(like[0]).getLikes().add(like[1]);
@@ -130,14 +133,15 @@ public class FilmDbStorage implements FilmStorage {
                 film.setGenres(new ArrayList<>());
             }
             return film;
-        }  catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Фильм с id=" + id + " не найден");
         }
     }
 
     @Override
     public Film addLike(int filmId, int userId) {
-        if (getFilm(filmId).getLikes().contains(userId)) throw new IllegalArgumentException("Пользователь уже поставил лайк");
+        if (getFilm(filmId).getLikes().contains(userId))
+            throw new IllegalArgumentException("Пользователь уже поставил лайк");
         userStorage.getUser(userId);
 
         Map<String, Object> values = new HashMap<>();
@@ -153,7 +157,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film removeLike(int filmId, int userId) {
-        if (!getFilm(filmId).getLikes().contains(userId)) throw new IllegalArgumentException("Пользователь не ставил лайк на фильм");
+        if (!getFilm(filmId).getLikes().contains(userId))
+            throw new IllegalArgumentException("Пользователь не ставил лайк на фильм");
         jdbcTemplate.update("delete from likes where user_id = ? and film_id = ?", userId, filmId);
         return getFilm(filmId);
     }
@@ -181,7 +186,7 @@ public class FilmDbStorage implements FilmStorage {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             film.setReleaseDate(LocalDate.from(formatter.parse(rs.getString("release_date"))));
             film.setDuration(rs.getInt("duration"));
-            film.setMpa(new Rating(rs.getInt("rating_id"),rs.getString("rating")));
+            film.setMpa(new Rating(rs.getInt("rating_id"), rs.getString("rating")));
             do {
                 Genre genre = new Genre(rs.getInt("genre_id"), rs.getString("genre"));
                 int like = rs.getInt("user_likes");
@@ -206,7 +211,7 @@ public class FilmDbStorage implements FilmStorage {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             film.setReleaseDate(LocalDate.from(formatter.parse(rs.getString("release_date"))));
             film.setDuration(rs.getInt("duration"));
-            film.setMpa(new Rating(rs.getInt("rating_id"),rs.getString("rating_name")));
+            film.setMpa(new Rating(rs.getInt("rating_id"), rs.getString("rating_name")));
             return film;
         };
     }
@@ -215,7 +220,7 @@ public class FilmDbStorage implements FilmStorage {
         return (rs, rowNum) -> {
             Integer[] like = new Integer[2];
             like[0] = rs.getInt("film_id");
-            like[1] =rs.getInt("user_id");
+            like[1] = rs.getInt("user_id");
             return like;
         };
     }

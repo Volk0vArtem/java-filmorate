@@ -18,6 +18,7 @@ import java.util.List;
 public class GenreController {
 
     private final GenreService service;
+
     @GetMapping
     public List<Genre> getGenres() {
         return service.getGenres();

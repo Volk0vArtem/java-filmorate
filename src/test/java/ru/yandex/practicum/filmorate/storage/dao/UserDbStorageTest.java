@@ -70,7 +70,7 @@ class UserDbStorageTest {
         assertThat(savedUsers)
                 .isNotNull()
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(user1,user2));
+                .isEqualTo(List.of(user1, user2));
     }
 
     @Test
@@ -84,7 +84,7 @@ class UserDbStorageTest {
 
         storage.addUser(user1);
         storage.addUser(user2);
-        storage.addToFriends(1,2);
+        storage.addToFriends(1, 2);
 
         List<User> savedFriends = storage.getFriends(1);
 
@@ -109,9 +109,9 @@ class UserDbStorageTest {
         storage.addUser(user1);
         storage.addUser(user2);
         storage.addUser(user3);
-        storage.addToFriends(1,2);
-        storage.addToFriends(1,3);
-        storage.removeFromFriends(1,3);
+        storage.addToFriends(1, 2);
+        storage.addToFriends(1, 3);
+        storage.removeFromFriends(1, 3);
 
         List<User> savedFriends = storage.getFriends(1);
 
@@ -137,10 +137,10 @@ class UserDbStorageTest {
         storage.addUser(user2);
         storage.addUser(user3);
 
-        storage.addToFriends(1,2);
-        storage.addToFriends(3,2);
+        storage.addToFriends(1, 2);
+        storage.addToFriends(3, 2);
 
-        List<User> savedCommonFriends = storage.getCommonFriends(1,3);
+        List<User> savedCommonFriends = storage.getCommonFriends(1, 3);
 
         assertThat(savedCommonFriends)
                 .isNotNull()
@@ -148,16 +148,16 @@ class UserDbStorageTest {
                 .isEqualTo(List.of(user2));
     }
 
-    private User createUser(){
+    private User createUser() {
         User user1 = new User();
         user1.setName("name");
         user1.setLogin("login");
         user1.setEmail("email");
-        user1.setBirthday(LocalDate.of(2000,1,1));
+        user1.setBirthday(LocalDate.of(2000, 1, 1));
         return user1;
     }
 
-    private void clearDb(){
+    private void clearDb() {
         jdbcTemplate.update("DELETE FROM users;");
         jdbcTemplate.update("ALTER TABLE users ALTER COLUMN id RESTART WITH 1;");
         jdbcTemplate.update("TRUNCATE TABLE friends;");

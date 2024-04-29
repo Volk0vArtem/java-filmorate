@@ -11,11 +11,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RatingService {
     private final RatingStorage storage;
-    public List<Rating> getRatings(){
+
+    public List<Rating> getRatings() {
         return storage.getRatings();
     }
 
-    public Rating getRating(int id){
+    public Rating getRating(int id) {
         return storage.getRating(id);
     }
 }
