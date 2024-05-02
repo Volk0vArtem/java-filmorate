@@ -5,45 +5,27 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
-
     private final UserStorage storage;
 
     public User addToFriends(int userId, int friendId) {
-        User user = storage.getUser(userId);
-        User friend = storage.getUser(friendId);
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
-        return user;
+        return storage.addToFriends(userId, friendId);
     }
 
     public void removeFromFriends(int userId, int friendId) {
-        User user = storage.getUser(userId);
-        User friend = storage.getUser(friendId);
-        user.getFriends().remove(friendId);
-        friend.getFriends().remove(userId);
+        storage.removeFromFriends(userId, friendId);
     }
 
     public List<User> getFriends(int id) {
-        return storage.getUser(id).getFriends().stream()
-                .map(storage::getUser)
-                .collect(Collectors.toList());
+        return storage.getFriends(id);
     }
 
     public List<User> getCommonFriends(int user1Id, int user2Id) {
-        Set<Integer> commonFriends = new HashSet<>(storage.getUser(user1Id).getFriends());
-        commonFriends.retainAll(storage.getUser(user2Id).getFriends());
-        System.out.println(commonFriends);
-        return commonFriends.stream()
-                .map(storage::getUser)
-                .collect(Collectors.toList());
+        return storage.getCommonFriends(user1Id, user2Id);
     }
 
     public List<User> getUsers() {
