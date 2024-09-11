@@ -1,33 +1,32 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import ru.yandex.practicum.filmorate.annotations.ReleaseDate;
+import lombok.experimental.Accessors;
+import org.hibernate.validator.constraints.Length;
+import ru.yandex.practicum.filmorate.annotation.NotReleaseDateBefore1895;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
+@Accessors(chain = true)
 public class Film {
-
-    private int id;
-    @NotBlank(message = "Название фильма не может быть пустым")
+    private Long id;
+    @NotBlank
     private String name;
-
-    @Size(max = 200)
-    @NotBlank(message = "Описание фильма не может быть пустым")
+    @Length(max = 200)
     private String description;
-
-    @ReleaseDate
-    private LocalDate releaseDate;
-    @Positive
-    private int duration;
-    private ArrayList<Genre> genres = new ArrayList<>();
-    private Rating mpa;
-    private final Set<Integer> likes = new HashSet<>();
-
+    @NotReleaseDateBefore1895
+    private String releaseDate;
+    @Min(1)
+    private Long duration;
+    private Mpa mpa;
+    private List<Genre> genres = new ArrayList<>();
+    private Set<Long> userIdLikes = new HashSet<>();
+    private int likes = 0;
+    private Set<Director> directors = new HashSet<>();
 }

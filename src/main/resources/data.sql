@@ -1,12 +1,24 @@
-INSERT INTO public.rating (id, name) VALUES(1, 'G');
-INSERT INTO public.rating (id, name) VALUES(2, 'PG');
-INSERT INTO public.rating (id, name) VALUES(3, 'PG-13');
-INSERT INTO public.rating (id, name) VALUES(4, 'R');
-INSERT INTO public.rating (id, name) VALUES(5, 'NC-17');
+insert into genres (name) values
+        ('Комедия'),
+        ('Драма'),
+        ('Мультфильм'),
+        ('Триллер'),
+        ('Документальный'),
+        ('Боевик');
 
-INSERT INTO public.genre (id, name) VALUES(1, 'Комедия');
-INSERT INTO public.genre (id, name) VALUES(2, 'Драма');
-INSERT INTO public.genre (id, name) VALUES(3, 'Мультфильм');
-INSERT INTO public.genre (id, name) VALUES(4, 'Триллер');
-INSERT INTO public.genre (id, name) VALUES(5, 'Документальный');
-INSERT INTO public.genre (id, name) VALUES(6, 'Боевик');
+insert into mpa_ratings (name) values
+        ('G'),
+        ('PG'),
+        ('PG-13'),
+        ('R'),
+        ('NC-17');
+
+insert into event_types (name) values
+        ('LIKE'),
+        ('REVIEW'),
+        ('FRIEND');
+
+insert into operations (name) values
+        ('ADD'),
+        ('UPDATE'),
+        ('REMOVE');
